@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: cwl-signup-bot
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r cwl_bot/requirements.txt"
+    startCommand: "python cwl_bot/bot.py"
+    envVars:
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: SUPABASE_URL
+        value: https://ovaqlplyxpiffnbjlejf.supabase.co
+      - key: SUPABASE_KEY
+        sync: false
+      - key: COC_API_KEY
+        sync: false
