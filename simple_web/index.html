@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CWL Roster Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase JS from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CWL Roster Manager</h1>
+            <div class="actions">
+                <button id="addClanBtn" class="btn primary">+ Add Clan</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Unassigned Players Section -->
+            <section class="roster-section">
+                <div class="section-header">
+                    <h2>Unassigned Players</h2>
+                    <span id="unassignedCount" class="badge">0</span>
+                </div>
+                <div id="unassignedList" class="player-list">
+                    <!-- Players will be injected here -->
+                    <div class="loading">Loading players...</div>
+                </div>
+            </section>
+
+            <!-- Clans Container -->
+            <div id="clansContainer" class="clans-container">
+                <!-- Clans will be injected here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Clan Modal -->
+    <div id="addClanModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Create New Clan</h3>
+            <input type="text" id="newClanName" placeholder="Clan Name (e.g. Main Clan)">
+            <input type="text" id="newClanTag" placeholder="Clan Tag (Optional)">
+            <div class="modal-actions">
+                <button id="cancelClanBtn" class="btn secondary">Cancel</button>
+                <button id="saveClanBtn" class="btn primary">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Player Modal -->
+    <div id="assignModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Assign Player</h3>
+            <p id="assignPlayerName">Select a clan for this player</p>
+            <div id="clanSelectContainer" class="clan-select-list">
+                <!-- Clan options will be injected here -->
+            </div>
+            <div class="modal-actions">
+                <button id="cancelAssignBtn" class="btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
