@@ -8,6 +8,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let signups = [];
 let clans = [];
 let selectedPlayerId = null;
+let isAdmin = false;
 
 // DOM Elements
 const unassignedList = document.getElementById('unassignedList');
@@ -22,9 +23,12 @@ const newClanTag = document.getElementById('newClanTag');
 const assignModal = document.getElementById('assignModal');
 const cancelAssignBtn = document.getElementById('cancelAssignBtn');
 const clanSelectContainer = document.getElementById('clanSelectContainer');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
 
 // Initialization
 async function init() {
+    await checkAuth();
     await Promise.all([fetchClans(), fetchSignups()]);
     render();
     
@@ -38,6 +42,33 @@ async function init() {
         .channel('public:clans')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'clans' }, fetchClans)
         .subscribe();
+}
+
+// Authentication
+async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    isAdmin = !!session;
+    toggleAdminUI();
+}
+
+function toggleAdminUI() {
+    const adminElements = document.querySelectorAll('.admin-only');
+    const visitorElements = document.querySelectorAll('.visitor-only');
+    
+    adminElements.forEach(el => {
+        el.style.display = isAdmin ? '' : 'none';
+    });
+    
+    visitorElements.forEach(el => {
+        el.style.display = isAdmin ? 'none' : '';
+    });
+}
+
+async function logout() {
+    await supabase.auth.signOut();
+    isAdmin = false;
+    toggleAdminUI();
+    render();
 }
 
 // Data Fetching
@@ -91,7 +122,7 @@ function renderUnassigned() {
 
 function renderClans() {
     if (clans.length === 0) {
-        clansContainer.innerHTML = '<div class="loading">No clans created yet. Click "Add Clan" to start.</div>';
+        clansContainer.innerHTML = isAdmin ? '<div class="loading">No clans created yet. Click "Add Clan" to start.</div>' : '<div class="loading">No clans created yet.</div>';
         return;
     }
     
@@ -106,16 +137,16 @@ function renderClans() {
                         <h3>${clan.name} <span style="color:var(--text-secondary); font-size:0.8em;">${clan.tag || ''}</span></h3>
                         <div class="clan-stats">${clanPlayers.length} Members | Avg TH: ${clanPlayers.length ? (totalTH / clanPlayers.length).toFixed(1) : 0}</div>
                     </div>
-                    <button onclick="deleteClan('${clan.id}')" class="btn danger">Delete Clan</button>
+                    ${isAdmin ? `<button onclick="deleteClan('${clan.id}')" class="btn danger">Delete Clan</button>` : ''}
                 </div>
                 <div class="player-list">
                     ${clanPlayers.length > 0 
                         ? clanPlayers.map(p => createPlayerCard(p, true)).join('') 
                         : '<div class="loading">No players assigned.</div>'}
                 </div>
-                <div style="margin-top: 15px; text-align: center;">
+                ${isAdmin ? `<div style="margin-top: 15px; text-align: center;">
                     <button onclick="openAssignModalForClan('${clan.id}')" class="btn secondary" style="width:100%">+ Add Players from Unassigned</button>
-                </div>
+                </div>` : ''}
             </div>
         `;
     }).join('');
@@ -123,9 +154,9 @@ function renderClans() {
 
 function createPlayerCard(player, isAssigned) {
     const thClass = `th-${player.town_hall_level}`;
-    const actionButton = isAssigned 
+    const actionButton = isAdmin ? (isAssigned 
         ? `<button onclick="unassignPlayer('${player.id}')" class="btn danger" title="Remove from Clan">×</button>`
-        : `<button onclick="openAssignModal('${player.id}')" class="btn primary">Assign</button>`;
+        : `<button onclick="openAssignModal('${player.id}')" class="btn primary">Assign</button>`) : '';
         
     return `
         <div class="player-card">
@@ -312,6 +343,8 @@ addClanBtn.addEventListener('click', openAddClanModal);
 cancelClanBtn.addEventListener('click', closeAddClanModal);
 saveClanBtn.addEventListener('click', createNewClan);
 cancelAssignBtn.addEventListener('click', closeAssignModal);
+loginBtn.addEventListener('click', () => window.location.href = 'login.html');
+logoutBtn.addEventListener('click', logout);
 
 // Close modals on outside click
 window.onclick = function(event) {
